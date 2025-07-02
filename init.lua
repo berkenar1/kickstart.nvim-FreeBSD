@@ -91,7 +91,9 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+-- NOTE: For enhanced modern experience, we enable Nerd Font by default
+-- If you don't have a Nerd Font, you can set this to false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -398,13 +400,47 @@ require('lazy').setup({
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
-        --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
-        -- pickers = {}
+        defaults = {
+          mappings = {
+            i = { 
+              ['<c-enter>'] = 'to_fuzzy_refine',
+              ['<C-u>'] = false,
+              ['<C-d>'] = false,
+            },
+          },
+          file_ignore_patterns = {
+            "node_modules",
+            ".git/",
+            "dist/",
+            "build/",
+            "target/",
+          },
+          layout_config = {
+            horizontal = {
+              prompt_position = "top",
+              preview_width = 0.55,
+              results_width = 0.8,
+            },
+            vertical = {
+              mirror = false,
+            },
+            width = 0.87,
+            height = 0.80,
+            preview_cutoff = 120,
+          },
+          sorting_strategy = "ascending",
+        },
+        pickers = {
+          find_files = {
+            theme = "dropdown",
+            previewer = false,
+          },
+          buffers = {
+            theme = "dropdown",
+            previewer = false,
+            initial_mode = "normal",
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -663,18 +699,34 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
-        -- gopls = {},
-        -- pyright = {},
-        -- rust_analyzer = {},
+        -- Web development
+        ts_ls = {}, -- TypeScript/JavaScript
+        html = {},
+        cssls = {},
+        jsonls = {},
+        
+        -- Python
+        pyright = {},
+        
+        -- Rust
+        rust_analyzer = {},
+        
+        -- Go
+        gopls = {},
+        
+        -- C/C++
+        clangd = {},
+        
+        -- Additional languages
+        -- bashls = {}, -- Bash
+        -- yamlls = {}, -- YAML
+        -- dockerls = {}, -- Docker
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
-        --
 
         lua_ls = {
           -- cmd = { ... },
@@ -708,6 +760,12 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        -- Additional formatters and linters
+        'prettier', -- Web formatting
+        'black', -- Python formatting  
+        'isort', -- Python import sorting
+        'eslint_d', -- JavaScript/TypeScript linting
+        'shellcheck', -- Shell script linting
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -936,7 +994,12 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 
+        'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc',
+        -- Additional parsers for modern development
+        'javascript', 'typescript', 'tsx', 'json', 'yaml', 'toml', 'css', 'scss',
+        'python', 'rust', 'go', 'java', 'cpp', 'dockerfile', 'gitignore', 'sql'
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -966,17 +1029,17 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.autopairs',
+  require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
