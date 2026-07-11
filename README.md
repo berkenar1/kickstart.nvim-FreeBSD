@@ -26,7 +26,14 @@ This fork includes FreeBSD-specific modifications:
 Kickstart.nvim targets *only* the latest
 ['stable'](https://github.com/neovim/neovim/releases/tag/stable) and latest
 ['nightly'](https://github.com/neovim/neovim/releases/tag/nightly) of Neovim.
-If you are experiencing issues, please make sure you have the latest versions.
+If you are experiencing issues, please make sure you have at least the latest
+stable version. Most likely, you want to install neovim via a [package
+manager](https://github.com/neovim/neovim/blob/master/INSTALL.md#install-from-package).
+To check your neovim version, run `nvim --version` and make sure it is not
+below the latest
+['stable'](https://github.com/neovim/neovim/releases/tag/stable) version. If
+your chosen install method only gives you an outdated version of neovim, find
+alternative [installation methods below](#alternative-neovim-installation-methods).
 
 ### Install External Dependencies
 
@@ -52,6 +59,7 @@ sudo pkg install -y git gmake unzip llvm ripgrep fd-find tree-sitter stylua base
 - Basic utils: `git`, `gmake` (FreeBSD uses gmake instead of make), `unzip`, C Compiler (clang via `llvm`)
 - [ripgrep](https://github.com/BurntSushi/ripgrep#installation),
   [fd-find](https://github.com/sharkdp/fd#installation)
+- [tree-sitter CLI](https://github.com/tree-sitter/tree-sitter/blob/master/crates/cli/README.md#installation) (available as `tree-sitter` in FreeBSD pkg)
 - Clipboard tool (xclip/xsel or xclip-freebsd)
 - A [Nerd Font](https://www.nerdfonts.com/): optional, provides various icons
   - if you have it set `vim.g.have_nerd_font` in `init.lua` to true
@@ -93,11 +101,10 @@ sudo sh install-freebsd.sh
 nvim
 ```
 
-Inside Neovim, run:
-
-```vim
-:Lazy sync
-```
+That's it! `vim.pack` will install all the plugins from your config. Use
+`:lua vim.pack.update(nil, { offline = true })` to inspect plugin state and
+`:lua vim.pack.update()` to fetch updates (`:write` applies updates, `:quit`
+cancels them).
 
 Wait for plugins to finish installing, then restart Neovim.
 
@@ -129,7 +136,8 @@ This config includes built-in support for editing and previewing technical artic
     `~/.local/share/nvim-freebsd`. You can apply this approach to any Neovim
     distribution that you would like to try out.
 * What if I want to "uninstall" this configuration:
-  * See [lazy.nvim uninstall](https://lazy.folke.io/usage#-uninstalling) information
+  * Remove your config directory and local data directory (for example,
+    `~/.config/nvim` and `~/.local/share/nvim`).
 * Why is the kickstart `init.lua` a single file? Wouldn't it make sense to split it into multiple files?
   * The main purpose of kickstart is to serve as a teaching tool and a reference
     configuration that someone can easily use to `git clone` as a basis for their own.
@@ -138,4 +146,185 @@ This config includes built-in support for editing and previewing technical artic
     same functionality is available here:
     * [kickstart-modular.nvim](https://github.com/dam9000/kickstart-modular.nvim)
 
+### Install Recipes
 
+Below you can find OS specific install instructions for Neovim and dependencies.
+
+After installing all the dependencies continue with the [Install Kickstart](#install-kickstart) step.
+
+#### Windows Installation
+
+<details><summary>Windows with Microsoft C++ Build Tools and CMake</summary>
+Kickstart's default config is make-only for `telescope-fzf-native.nvim`.
+If `make` is unavailable, the plugin is skipped.
+
+Recommended: install `make` (see the chocolatey section below).
+
+If you want a CMake-only setup, customize `init.lua` in two places:
+
+1. Include `telescope-fzf-native.nvim` when `cmake` is available:
+
+```lua
+if vim.fn.executable 'make' == 1 or vim.fn.executable 'cmake' == 1 then
+  table.insert(plugins, gh 'nvim-telescope/telescope-fzf-native.nvim')
+end
+```
+
+2. In the `PackChanged` hook, use CMake when `make` is unavailable:
+
+```lua
+if name == 'telescope-fzf-native.nvim' then
+  if vim.fn.executable 'make' == 1 then
+    run_build(name, { 'make' }, ev.data.path)
+  elseif vim.fn.executable 'cmake' == 1 then
+    run_build(name, { 'cmake', '-S.', '-Bbuild', '-DCMAKE_BUILD_TYPE=Release' }, ev.data.path)
+    run_build(name, { 'cmake', '--build', 'build', '--config', 'Release', '--target', 'install' }, ev.data.path)
+  end
+  return
+end
+```
+
+See `telescope-fzf-native` documentation for [build details](https://github.com/nvim-telescope/telescope-fzf-native.nvim#installation).
+</details>
+<details><summary>Windows with gcc/make using chocolatey</summary>
+Alternatively, one can install gcc and make which don't require changing the config,
+the easiest way is to use choco:
+
+1. install [chocolatey](https://chocolatey.org/install)
+either follow the instructions on the page or use winget,
+run in cmd as **admin**:
+```
+winget install --accept-source-agreements chocolatey.chocolatey
+```
+
+2. install all requirements using choco, exit the previous cmd and
+open a new one so that choco path is set, and run in cmd as **admin**:
+```
+choco install -y neovim git ripgrep wget fd unzip gzip mingw make tree-sitter
+```
+</details>
+<details><summary>WSL (Windows Subsystem for Linux)</summary>
+
+```
+wsl --install
+wsl
+sudo add-apt-repository ppa:neovim-ppa/unstable -y
+sudo apt update
+sudo apt install make gcc ripgrep fd-find tree-sitter-cli unzip git xclip neovim
+```
+</details>
+
+#### Linux Install
+<details><summary>Ubuntu Install Steps</summary>
+
+```
+sudo add-apt-repository ppa:neovim-ppa/unstable -y
+sudo apt update
+sudo apt install make gcc ripgrep fd-find tree-sitter-cli unzip git xclip neovim
+```
+</details>
+<details><summary>Debian Install Steps</summary>
+
+```
+sudo apt update
+sudo apt install make gcc ripgrep fd-find tree-sitter-cli unzip git xclip curl
+
+# Now we install nvim
+curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+sudo rm -rf /opt/nvim-linux-x86_64
+sudo mkdir -p /opt/nvim-linux-x86_64
+sudo chmod a+rX /opt/nvim-linux-x86_64
+sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+
+# make it available in /usr/local/bin, distro installs to /usr/bin
+sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/
+```
+</details>
+<details><summary>Fedora Install Steps</summary>
+
+```
+sudo dnf install -y gcc make git ripgrep fd-find tree-sitter-cli unzip neovim
+```
+</details>
+
+<details><summary>Arch Install Steps</summary>
+
+```
+sudo pacman -S --noconfirm --needed gcc make git ripgrep fd tree-sitter-cli unzip neovim
+```
+</details>
+
+### Alternative neovim installation methods
+
+For some systems it is not unexpected that the [package manager installation
+method](https://github.com/neovim/neovim/blob/master/INSTALL.md#install-from-package)
+recommended by neovim is significantly behind. If that is the case for you,
+pick one of the following methods that are known to deliver fresh neovim versions very quickly.
+They have been picked for their popularity and because they make installing and updating
+neovim to the latest versions easy. You can also find more detail about the
+available methods being discussed
+[here](https://github.com/nvim-lua/kickstart.nvim/issues/1583).
+
+
+<details><summary>Bob</summary>
+
+[Bob](https://github.com/MordechaiHadad/bob) is a Neovim version manager for
+all platforms. Simply install
+[rustup](https://rust-lang.github.io/rustup/installation/other.html),
+and run the following commands:
+
+```bash
+rustup default stable
+rustup update stable
+cargo install bob-nvim
+bob use stable
+```
+
+</details>
+
+<details><summary>Homebrew</summary>
+
+[Homebrew](https://brew.sh) is a package manager popular on Mac and Linux.
+Simply install using [`brew install`](https://formulae.brew.sh/formula/neovim).
+
+</details>
+
+<details><summary>Flatpak</summary>
+
+Flatpak is a package manager for applications that allows developers to package their applications
+just once to make it available on all Linux systems. Simply [install flatpak](https://flatpak.org/setup/)
+and setup [flathub](https://flathub.org/setup) to [install neovim](https://flathub.org/apps/io.neovim.nvim).
+
+</details>
+
+<details><summary>asdf and mise-en-place</summary>
+
+[asdf](https://asdf-vm.com/) and [mise](https://mise.jdx.dev/) are tool version managers,
+mostly aimed towards project-specific tool versioning. However both support managing tools
+globally in the user-space as well:
+
+<details><summary>mise</summary>
+
+[Install mise](https://mise.jdx.dev/getting-started.html), then run:
+
+```bash
+mise plugins install neovim
+mise use neovim@stable
+```
+
+</details>
+
+<details><summary>asdf</summary>
+
+[Install asdf](https://asdf-vm.com/guide/getting-started.html), then run:
+
+```bash
+asdf plugin add neovim
+asdf install neovim stable
+asdf set neovim stable --home
+asdf reshim neovim
+```
+
+</details>
+
+</details>
