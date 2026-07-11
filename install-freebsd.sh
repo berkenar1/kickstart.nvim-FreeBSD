@@ -22,8 +22,8 @@ echo "[2/5] Installing core dependencies (git, make, unzip, clang)..."
 pkg install -y base64 git gmake unzip llvm
 
 # Development tools
-echo "[3/5] Installing development tools (ripgrep, fd)..."
-pkg install -y ripgrep fd-find
+echo "[3/5] Installing development tools (ripgrep, fd, node, npm)..."
+pkg install -y ripgrep fd-find node npm
 
 # Tree-sitter for syntax highlighting
 echo "[4/5] Installing tree-sitter..."

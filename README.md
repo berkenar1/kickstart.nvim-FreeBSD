@@ -42,7 +42,7 @@ Or manually install dependencies:
 
 ```sh
 sudo pkg update -f
-sudo pkg install -y git gmake unzip llvm ripgrep fd-find tree-sitter stylua base64-by-elvis
+sudo pkg install -y git gmake unzip llvm ripgrep fd-find tree-sitter stylua base64-by-elvis node npm
 ```
 
 **Note:** `lua-language-server` is not available in FreeBSD pkg repositories, so LSP support for Lua is disabled in this config.
@@ -58,6 +58,7 @@ sudo pkg install -y git gmake unzip llvm ripgrep fd-find tree-sitter stylua base
 - Language Setup:
   - If you want to write Typescript, you need `npm`
   - If you want to write Golang, you will need `go`
+  - If you want markdown live preview, you need `node` and `npm`
   - etc.
 
 ### Install Kickstart.nvim-FreeBSD
@@ -103,6 +104,12 @@ Wait for plugins to finish installing, then restart Neovim.
 ### Getting Started
 
 Read through the `init.lua` file in your configuration folder for more information about extending and exploring Neovim.
+
+#### Markdown Writing
+
+This config includes built-in support for editing and previewing technical articles:
+- **Syntax & Math Highlighting**: `vim-markdown` handles syntax highlighting, frontmatter, and math support. Single `$...$` and double `$$...$$` math syntax is fully supported for highlight and structure awareness. Note that the actual math rendering happens in the browser preview.
+- **Live Preview**: Toggle a live browser preview with `<leader>mp` (runs `:MarkdownPreviewToggle`). This relies on `markdown-preview.nvim` which requires `node` and `npm` installed.
 
 ### FAQ
 
