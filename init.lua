@@ -800,7 +800,7 @@ do
   end
 
   local ensure_installed = vim.tbl_keys(servers or {})
-  if vim.fn.has 'freebsd' == 1 then
+  if vim.uv.os_uname().sysname == 'FreeBSD' then
     ensure_installed = {}
   end
   vim.list_extend(ensure_installed, {
