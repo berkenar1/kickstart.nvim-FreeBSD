@@ -982,6 +982,13 @@ do
       local language = vim.treesitter.language.get_lang(filetype)
       if not language then return end
 
+      -- Check if Neovim natively has access to this parser (e.g. system-wide in /usr/local/lib/nvim/parser)
+      local has_parser, _ = pcall(vim.treesitter.language.add, language)
+      if has_parser then
+        treesitter_try_attach(buf, language)
+        return
+      end
+
       local installed_parsers = require('nvim-treesitter').get_installed 'parsers'
 
       if vim.tbl_contains(installed_parsers, language) then
