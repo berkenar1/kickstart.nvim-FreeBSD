@@ -219,7 +219,12 @@ do
 
   vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
-  vim.keymap.set('n', '<leader>mp', ':MarkdownPreviewToggle<CR>', { desc = '[M]arkdown [P]review toggle' })
+  vim.keymap.set('n', '<leader>mp', function()
+    if vim.fn.exists(':MarkdownPreviewToggle') == 0 then
+      vim.pack.add { gh 'iamcco/markdown-preview.nvim' }
+    end
+    vim.cmd 'MarkdownPreviewToggle'
+  end, { desc = '[M]arkdown [P]review toggle' })
 
   -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
   -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -466,15 +471,22 @@ do
   --  Check out: https://github.com/nvim-mini/mini.nvim
 
   -- [[ Markdown support ]]
-  -- Syntax highlighting, frontmatter, and math support for Markdown files.
-  vim.pack.add { gh 'plasticboy/vim-markdown' }
-  vim.g.vim_markdown_math = 1
-  vim.g.vim_markdown_frontmatter = 1
-  vim.g.vim_markdown_folding_disabled = 1
+  -- Lazy-load markdown plugins only when opening a markdown file.
+  vim.api.nvim_create_autocmd('FileType', {
+    pattern = 'markdown',
+    once = true,
+    callback = function()
+      -- Syntax highlighting, frontmatter, and math support for Markdown files.
+      vim.pack.add { gh 'plasticboy/vim-markdown' }
+      vim.g.vim_markdown_math = 1
+      vim.g.vim_markdown_frontmatter = 1
+      vim.g.vim_markdown_folding_disabled = 1
 
-  -- Live browser preview for Markdown files. Toggle with <leader>mp.
-  -- Requires node and npm. See https://github.com/iamcco/markdown-preview.nvim
-  vim.pack.add { gh 'iamcco/markdown-preview.nvim' }
+      -- Live browser preview for Markdown files.
+      -- Requires node and npm. See https://github.com/iamcco/markdown-preview.nvim
+      vim.pack.add { gh 'iamcco/markdown-preview.nvim' }
+    end,
+  })
 end
 
 -- ============================================================
@@ -506,111 +518,99 @@ do
   -- Telescope picker. This is really useful to discover what Telescope can
   -- do as well as how to actually do it!
 
-  ---@type (string|vim.pack.Spec)[]
-  local telescope_plugins = {
-    gh 'nvim-lua/plenary.nvim',
-    gh 'nvim-telescope/telescope.nvim',
-    gh 'nvim-telescope/telescope-ui-select.nvim',
-  }
-  local make_cmd = vim.fn.executable 'gmake' == 1 and 'gmake' or 'make'
-  if vim.fn.executable(make_cmd) == 1 then table.insert(telescope_plugins, gh 'nvim-telescope/telescope-fzf-native.nvim') end
+  local function lazy_telescope(fn_name, opts)
+    return function()
+      if not package.loaded['telescope'] then
+        local telescope_plugins = {
+          gh 'nvim-lua/plenary.nvim',
+          gh 'nvim-telescope/telescope.nvim',
+          gh 'nvim-telescope/telescope-ui-select.nvim',
+        }
+        local make_cmd = vim.fn.executable 'gmake' == 1 and 'gmake' or 'make'
+        if vim.fn.executable(make_cmd) == 1 then table.insert(telescope_plugins, gh 'nvim-telescope/telescope-fzf-native.nvim') end
 
-  -- NOTE: You can install multiple plugins at once
-  vim.pack.add(telescope_plugins)
+        -- Install Telescope plugins
+        vim.pack.add(telescope_plugins)
 
-  -- See `:help telescope` and `:help telescope.setup()`
-  require('telescope').setup {
-    -- You can put your default mappings / updates / etc. in here
-    --  All the info you're looking for is in `:help telescope.setup()`
-    --
-    -- defaults = {
-    --   mappings = {
-    --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-    --   },
-    -- },
-    -- pickers = {}
-    extensions = {
-      ['ui-select'] = { require('telescope.themes').get_dropdown() },
-    },
-  }
+        -- Configure Telescope
+        require('telescope').setup {
+          extensions = {
+            ['ui-select'] = { require('telescope.themes').get_dropdown() },
+          },
+        }
 
-  -- Enable Telescope extensions if they are installed
-  pcall(require('telescope').load_extension, 'fzf')
-  pcall(require('telescope').load_extension, 'ui-select')
+        -- Load extensions
+        pcall(require('telescope').load_extension, 'fzf')
+        pcall(require('telescope').load_extension, 'ui-select')
+      end
+
+      if type(fn_name) == 'function' then
+        fn_name(require('telescope.builtin'))
+      else
+        require('telescope.builtin')[fn_name](opts)
+      end
+    end
+  end
 
   -- See `:help telescope.builtin`
-  local builtin = require 'telescope.builtin'
-  vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
-  vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-  vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
-  vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-  vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-  vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-  vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-  vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
-  vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-  vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
-  vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+  vim.keymap.set('n', '<leader>sh', lazy_telescope 'help_tags', { desc = '[S]earch [H]elp' })
+  vim.keymap.set('n', '<leader>sk', lazy_telescope 'keymaps', { desc = '[S]earch [K]eymaps' })
+  vim.keymap.set('n', '<leader>sf', lazy_telescope 'find_files', { desc = '[S]earch [F]iles' })
+  vim.keymap.set('n', '<leader>ss', lazy_telescope 'builtin', { desc = '[S]earch [S]elect Telescope' })
+  vim.keymap.set({ 'n', 'v' }, '<leader>sw', lazy_telescope 'grep_string', { desc = '[S]earch current [W]ord' })
+  vim.keymap.set('n', '<leader>sg', lazy_telescope 'live_grep', { desc = '[S]earch by [G]rep' })
+  vim.keymap.set('n', '<leader>sd', lazy_telescope 'diagnostics', { desc = '[S]earch [D]iagnostics' })
+  vim.keymap.set('n', '<leader>sr', lazy_telescope 'resume', { desc = '[S]earch [R]esume' })
+  vim.keymap.set('n', '<leader>s.', lazy_telescope 'oldfiles', { desc = '[S]earch Recent Files ("." for repeat)' })
+  vim.keymap.set('n', '<leader>sc', lazy_telescope 'commands', { desc = '[S]earch [C]ommands' })
+  vim.keymap.set('n', '<leader><leader>', lazy_telescope 'buffers', { desc = '[ ] Find existing buffers' })
 
   -- Add Telescope-based LSP pickers when an LSP attaches to a buffer.
-  -- If you later switch picker plugins, this is where to update these mappings.
   vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('telescope-lsp-attach', { clear = true }),
     callback = function(event)
       local buf = event.buf
 
       -- Find references for the word under your cursor.
-      vim.keymap.set('n', 'grr', builtin.lsp_references, { buffer = buf, desc = '[G]oto [R]eferences' })
+      vim.keymap.set('n', 'grr', lazy_telescope 'lsp_references', { buffer = buf, desc = '[G]oto [R]eferences' })
 
       -- Jump to the implementation of the word under your cursor.
-      -- Useful when your language has ways of declaring types without an actual implementation.
-      vim.keymap.set('n', 'gri', builtin.lsp_implementations, { buffer = buf, desc = '[G]oto [I]mplementation' })
+      vim.keymap.set('n', 'gri', lazy_telescope 'lsp_implementations', { buffer = buf, desc = '[G]oto [I]mplementation' })
 
       -- Jump to the definition of the word under your cursor.
-      -- This is where a variable was first declared, or where a function is defined, etc.
-      -- To jump back, press <C-t>.
-      vim.keymap.set('n', 'grd', builtin.lsp_definitions, { buffer = buf, desc = '[G]oto [D]efinition' })
+      vim.keymap.set('n', 'grd', lazy_telescope 'lsp_definitions', { buffer = buf, desc = '[G]oto [D]efinition' })
 
       -- Fuzzy find all the symbols in your current document.
-      -- Symbols are things like variables, functions, types, etc.
-      vim.keymap.set('n', 'gO', builtin.lsp_document_symbols, { buffer = buf, desc = 'Open Document Symbols' })
+      vim.keymap.set('n', 'gO', lazy_telescope 'lsp_document_symbols', { buffer = buf, desc = 'Open Document Symbols' })
 
       -- Fuzzy find all the symbols in your current workspace.
-      -- Similar to document symbols, except searches over your entire project.
-      vim.keymap.set('n', 'gW', builtin.lsp_dynamic_workspace_symbols, { buffer = buf, desc = 'Open Workspace Symbols' })
+      vim.keymap.set('n', 'gW', lazy_telescope 'lsp_dynamic_workspace_symbols', { buffer = buf, desc = 'Open Workspace Symbols' })
 
       -- Jump to the type of the word under your cursor.
-      -- Useful when you're not sure what type a variable is and you want to see
-      -- the definition of its *type*, not where it was *defined*.
-      vim.keymap.set('n', 'grt', builtin.lsp_type_definitions, { buffer = buf, desc = '[G]oto [T]ype Definition' })
+      vim.keymap.set('n', 'grt', lazy_telescope 'lsp_type_definitions', { buffer = buf, desc = '[G]oto [T]ype Definition' })
     end,
   })
 
   -- Override default behavior and theme when searching
-  vim.keymap.set('n', '<leader>/', function()
-    -- You can pass additional configuration to Telescope to change the theme, layout, etc.
-    builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+  vim.keymap.set('n', '<leader>/', lazy_telescope(function(b)
+    b.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
       winblend = 10,
       previewer = false,
     })
-  end, { desc = '[/] Fuzzily search in current buffer' })
+  end), { desc = '[/] Fuzzily search in current buffer' })
 
   -- It's also possible to pass additional configuration options.
-  --  See `:help telescope.builtin.live_grep()` for information about particular keys
-  vim.keymap.set(
-    'n',
-    '<leader>s/',
-    function()
-      builtin.live_grep {
-        grep_open_files = true,
-        prompt_title = 'Live Grep in Open Files',
-      }
-    end,
-    { desc = '[S]earch [/] in Open Files' }
-  )
+  vim.keymap.set('n', '<leader>s/', lazy_telescope(function(b)
+    b.live_grep {
+      grep_open_files = true,
+      prompt_title = 'Live Grep in Open Files',
+    }
+  end), { desc = '[S]earch [/] in Open Files' })
 
   -- Shortcut for searching your Neovim configuration files
-  vim.keymap.set('n', '<leader>sn', function() builtin.find_files { cwd = vim.fn.stdpath 'config', follow = true } end, { desc = '[S]earch [N]eovim files' })
+  vim.keymap.set('n', '<leader>sn', lazy_telescope(function(b)
+    b.find_files { cwd = vim.fn.stdpath 'config', follow = true }
+  end), { desc = '[S]earch [N]eovim files' })
 end
 
 -- ============================================================
@@ -777,15 +777,21 @@ do
     },
   }
 
-  vim.pack.add {
-    gh 'neovim/nvim-lspconfig',
-    gh 'mason-org/mason.nvim',
-    gh 'mason-org/mason-lspconfig.nvim',
-    gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
-  }
+  local is_freebsd = vim.uv.os_uname().sysname == 'FreeBSD'
 
-  -- Automatically install LSPs and related tools to stdpath for Neovim
-  require('mason').setup {}
+  if is_freebsd then
+    vim.pack.add { gh 'neovim/nvim-lspconfig' }
+  else
+    vim.pack.add {
+      gh 'neovim/nvim-lspconfig',
+      gh 'mason-org/mason.nvim',
+      gh 'mason-org/mason-lspconfig.nvim',
+      gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
+    }
+
+    -- Automatically install LSPs and related tools to stdpath for Neovim
+    require('mason').setup {}
+  end
 
   -- Ensure the servers and tools above are installed
   --
@@ -799,15 +805,14 @@ do
     servers.lua_ls = nil
   end
 
-  local ensure_installed = vim.tbl_keys(servers or {})
-  if vim.uv.os_uname().sysname == 'FreeBSD' then
-    ensure_installed = {}
-  end
-  vim.list_extend(ensure_installed, {
-    -- You can add other tools here that you want Mason to install
-  })
+  if not is_freebsd then
+    local ensure_installed = vim.tbl_keys(servers or {})
+    vim.list_extend(ensure_installed, {
+      -- You can add other tools here that you want Mason to install
+    })
 
-  require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+    require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+  end
 
   for name, server in pairs(servers) do
     vim.lsp.config(name, server)
@@ -928,7 +933,7 @@ do
     -- the rust implementation via `'prefer_rust_with_warning'`
     --
     -- See `:help blink-cmp-config-fuzzy` for more information
-    fuzzy = { implementation = 'lua' },
+    fuzzy = { implementation = 'prefer_rust_with_warning' },
 
     -- Shows a signature help window while you type arguments for a function
     signature = { enabled = true },
