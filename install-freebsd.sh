@@ -27,7 +27,7 @@ pkg install -y ripgrep fd-find node npm
 
 # Tree-sitter for syntax highlighting
 echo "[4/5] Installing tree-sitter..."
-pkg install -y tree-sitter
+pkg install -y tree-sitter tree-sitter-cli
 
 # Code formatter
 echo "[5/5] Installing code formatters (stylua)..."

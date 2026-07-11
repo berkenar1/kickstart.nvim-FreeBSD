@@ -49,7 +49,7 @@ Or manually install dependencies:
 
 ```sh
 sudo pkg update -f
-sudo pkg install -y git gmake unzip llvm ripgrep fd-find tree-sitter stylua base64-by-elvis node npm
+sudo pkg install -y git gmake unzip llvm ripgrep fd-find tree-sitter tree-sitter-cli stylua base64-by-elvis node npm
 ```
 
 **Note:** `lua-language-server` is not available in FreeBSD pkg repositories, so LSP support for Lua is disabled in this config.
