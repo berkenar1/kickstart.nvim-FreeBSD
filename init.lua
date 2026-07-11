@@ -736,6 +736,14 @@ do
 
     -- Special Lua Config, as recommended by neovim help docs
     lua_ls = {
+      cmd = {
+        'lua-language-server',
+        '--logpath=' .. vim.fn.stdpath 'cache' .. '/lua-language-server/log',
+        '--metapath=' .. vim.fn.stdpath 'cache' .. '/lua-language-server/meta',
+      },
+      on_exit = function(code, signal, client_id)
+        vim.notify(string.format("LSP lua_ls exited with code %d and signal %d", code, signal), vim.log.levels.WARN)
+      end,
       on_init = function(client)
         client.server_capabilities.documentFormattingProvider = false -- Disable formatting (formatting is done by stylua)
 
