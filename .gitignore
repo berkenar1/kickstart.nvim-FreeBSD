@@ -4,8 +4,6 @@ test.sh
 nvim
 
 spell/
-<<<<<<< HEAD
-=======
 
 # In your personal fork, you likely want to comment this, since it's recommended to track
 # nvim-pack-lock.json in version control - see :help vim.pack-lockfile
@@ -14,4 +12,3 @@ spell/
 nvim-pack-lock.json
 
 .DS_Store
->>>>>>> upstream/master

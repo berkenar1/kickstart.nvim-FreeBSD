@@ -59,12 +59,8 @@ sudo pkg install -y git gmake unzip llvm ripgrep fd-find tree-sitter stylua base
 - Basic utils: `git`, `gmake` (FreeBSD uses gmake instead of make), `unzip`, C Compiler (clang via `llvm`)
 - [ripgrep](https://github.com/BurntSushi/ripgrep#installation),
   [fd-find](https://github.com/sharkdp/fd#installation)
-<<<<<<< HEAD
+- [tree-sitter CLI](https://github.com/tree-sitter/tree-sitter/blob/master/crates/cli/README.md#installation) (available as `tree-sitter` in FreeBSD pkg)
 - Clipboard tool (xclip/xsel or xclip-freebsd)
-=======
-- [tree-sitter CLI](https://github.com/tree-sitter/tree-sitter/blob/master/crates/cli/README.md#installation)
-- Clipboard tool (xclip/xsel/win32yank or other depending on the platform)
->>>>>>> upstream/master
 - A [Nerd Font](https://www.nerdfonts.com/): optional, provides various icons
   - if you have it set `vim.g.have_nerd_font` in `init.lua` to true
 - Language Setup:
@@ -84,31 +80,7 @@ Neovim's configuration location on FreeBSD:
 ~/.config/nvim
 ```
 
-<<<<<<< HEAD
 #### Clone the Repository
-=======
-#### Recommended Step
-
-[Fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) this repo
-so that you have your own copy that you can modify, then install by cloning the
-fork to your machine using one of the commands below, depending on your OS.
-
-> [!NOTE]
-> Your fork's URL will be something like this:
-> `https://github.com/<your_github_username>/kickstart.nvim.git`
-
-You likely want to remove `nvim-pack-lock.json` from your fork's `.gitignore`
-file too - it's ignored in the kickstart repo to make maintenance easier, but
-it's recommended to track it in version control (see `:help vim.pack-lockfile`).
-
-#### Clone kickstart.nvim
-
-> [!NOTE]
-> If following the recommended step above (i.e., forking the repo), replace
-> `nvim-lua` with `<your_github_username>` in the commands below
-
-<details><summary> Linux and Mac </summary>
->>>>>>> upstream/master
 
 ```sh
 git clone https://github.com/YOUR_USERNAME/kickstart.nvim-freebsd.git "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
@@ -129,18 +101,10 @@ sudo sh install-freebsd.sh
 nvim
 ```
 
-<<<<<<< HEAD
-Inside Neovim, run:
-=======
 That's it! `vim.pack` will install all the plugins from your config. Use
 `:lua vim.pack.update(nil, { offline = true })` to inspect plugin state and
 `:lua vim.pack.update()` to fetch updates (`:write` applies updates, `:quit`
 cancels them).
->>>>>>> upstream/master
-
-```vim
-:Lazy sync
-```
 
 Wait for plugins to finish installing, then restart Neovim.
 
@@ -182,8 +146,6 @@ This config includes built-in support for editing and previewing technical artic
     same functionality is available here:
     * [kickstart-modular.nvim](https://github.com/dam9000/kickstart-modular.nvim)
 
-<<<<<<< HEAD
-=======
 ### Install Recipes
 
 Below you can find OS specific install instructions for Neovim and dependencies.
@@ -291,7 +253,6 @@ sudo dnf install -y gcc make git ripgrep fd-find tree-sitter-cli unzip neovim
 sudo pacman -S --noconfirm --needed gcc make git ripgrep fd tree-sitter-cli unzip neovim
 ```
 </details>
->>>>>>> upstream/master
 
 ### Alternative neovim installation methods
 
