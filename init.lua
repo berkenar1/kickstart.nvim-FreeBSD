@@ -310,19 +310,26 @@ do
       local kind = ev.data.kind
       if kind ~= 'install' and kind ~= 'update' then return end
 
-      if name == 'telescope-fzf-native.nvim' and vim.fn.executable 'make' == 1 then
-        run_build(name, { 'make' }, ev.data.path)
+      local make_cmd = vim.fn.executable 'gmake' == 1 and 'gmake' or 'make'
+
+      if name == 'telescope-fzf-native.nvim' and vim.fn.executable(make_cmd) == 1 then
+        run_build(name, { make_cmd }, ev.data.path)
         return
       end
 
       if name == 'LuaSnip' then
-        if vim.fn.has 'win32' ~= 1 and vim.fn.executable 'make' == 1 then run_build(name, { 'make', 'install_jsregexp' }, ev.data.path) end
+        if vim.fn.has 'win32' ~= 1 and vim.fn.executable(make_cmd) == 1 then run_build(name, { make_cmd, 'install_jsregexp' }, ev.data.path) end
         return
       end
 
       if name == 'nvim-treesitter' then
         if not ev.data.active then vim.cmd.packadd 'nvim-treesitter' end
         vim.cmd 'TSUpdate'
+        return
+      end
+
+      if name == 'markdown-preview.nvim' and vim.fn.executable 'npm' == 1 then
+        run_build(name, { 'npm', 'install' }, ev.data.path .. '/app')
         return
       end
     end,
@@ -505,7 +512,8 @@ do
     gh 'nvim-telescope/telescope.nvim',
     gh 'nvim-telescope/telescope-ui-select.nvim',
   }
-  if vim.fn.executable 'make' == 1 then table.insert(telescope_plugins, gh 'nvim-telescope/telescope-fzf-native.nvim') end
+  local make_cmd = vim.fn.executable 'gmake' == 1 and 'gmake' or 'make'
+  if vim.fn.executable(make_cmd) == 1 then table.insert(telescope_plugins, gh 'nvim-telescope/telescope-fzf-native.nvim') end
 
   -- NOTE: You can install multiple plugins at once
   vim.pack.add(telescope_plugins)
