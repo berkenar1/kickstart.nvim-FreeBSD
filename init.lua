@@ -786,14 +786,15 @@ do
   --    :Mason
   --
   -- You can press `g?` for help in this menu.
-  if vim.fn.executable 'stylua' == 1 then
-    servers.stylua = nil
-  end
+  servers.stylua = nil -- stylua is not an LSP, and is installed via system pkg
   if vim.fn.executable 'lua-language-server' == 0 then
     servers.lua_ls = nil
   end
 
   local ensure_installed = vim.tbl_keys(servers or {})
+  if vim.fn.has 'freebsd' == 1 then
+    ensure_installed = {}
+  end
   vim.list_extend(ensure_installed, {
     -- You can add other tools here that you want Mason to install
   })
